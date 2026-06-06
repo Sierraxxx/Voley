@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Plan de Gastos Personal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg-base:      #080b10;
+      --bg-panel:     #0d1117;
+      --bg-card:      #111820;
+      --bg-row-alt:   #0f1822;
+      --border:       #1e3a4a;
+      --border-glow:  #00d4ff;
+      --cyan:         #00d4ff;
+      --green:        #00ff88;
+      --red:          #ff3a5c;
+      --gold:         #f0b429;
+      --purple:       #9b59f5;
+      --text:         #e8f4f8;
+      --text2:        #7aa8bc;
+      --muted:        #3d6070;
+      --font-d:       'Orbitron', monospace;
+      --font-b:       'Rajdhani', sans-serif;
+      --font-m:       'Share Tech Mono', monospace;
+      --glow-c:       0 0 8px rgba(0,212,255,.4), 0 0 24px rgba(0,212,255,.15);
+      --glow-g:       0 0 8px rgba(0,255,136,.4), 0 0 24px rgba(0,255,136,.15);
+      --glow-r:       0 0 8px rgba(255,58,92,.4),  0 0 24px rgba(255,58,92,.15);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg-base);
+      color: var(--text);
+      font-family: var(--font-b);
+      font-size: 16px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none; z-index: 0;
+    }
+    /* Scanlines */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px);
+      pointer-events: none; z-index: 1;
+    }
+
+    .wrapper {
+      position: relative; z-index: 2;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 16px 80px;
+    }
+
+    /* ── HEADER ── */
+    header { text-align: center; margin-bottom: 48px; }
+    .h-tag {
+      font-family: var(--font-m); font-size: 10px;
+      letter-spacing: 4px; color: var(--cyan);
+      text-transform: uppercase; margin-bottom: 10px; opacity: .7;
+    }
+    h1 {
+      font-family: var(--font-d);
+      font-size: clamp(20px, 6vw, 42px);
+      font-weight: 900; letter-spacing: 3px;
+      background: linear-gradient(135deg,#fff 0%,var(--cyan) 50%,#fff 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 6px;
+    }
+    .h-sub {
+      font-family: var(--font-m); font-size: 11px;
+      color: var(--muted); letter-spacing: 3px;
+    }
+    .owner-name {
+      display: inline-block; margin-top: 16px;
+      font-family: var(--font-d);
+      font-size: clamp(12px, 3vw, 18px);
+      font-weight: 700; letter-spacing: 5px;
+      color: var(--gold); padding: 7px 24px;
+      border: 1px solid var(--gold); border-radius: 2px;
+    }
+    .h-line {
+      width: 160px; height: 1px; margin: 18px auto 0;
+      background: linear-gradient(90deg,transparent,var(--cyan),transparent);
+      animation: pulse 3s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+    /* ── SECTION TITLE ── */
+    .sec-title {
+      font-family: var(--font-m); font-size: 10px;
+      letter-spacing: 5px; color: var(--cyan);
+      text-transform: uppercase; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .sec-title::after {
+      content:''; flex:1; height:1px;
+      background: linear-gradient(90deg,var(--cyan),transparent); opacity:.3;
+    }
+
+    /* ── PANEL ── */
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 4px; padding: 20px;
+      margin-bottom: 28px; position: relative; overflow: hidden;
+    }
+    .panel::before {
+      content:''; position:absolute; top:0; left:0;
+      width:3px; height:100%;
+      background: linear-gradient(180deg,var(--cyan),transparent);
+    }
+
+    /* ── INGRESOS ── */
+    .income-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    @media(min-width:600px){
+      .income-grid { grid-template-columns: repeat(4,1fr); }
+    }
+    .income-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 4px; padding: 14px 16px;
+    }
+    .ic-label {
+      font-family: var(--font-m); font-size: 9px;
+      letter-spacing: 2px; color: var(--muted);
+      text-transform: uppercase; margin-bottom: 5px;
+    }
+    .ic-value {
+      font-family: var(--font-m); font-size: 20px;
+      color: var(--green); text-shadow: var(--glow-g);
+    }
+    .ic-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .ic-total { border-color: var(--green); box-shadow: inset 0 0 28px rgba(0,255,136,.04); }
+    .ic-total .ic-value { font-size: 22px; }
+
+    /* ══════════════════════════════════
+       TABLA — DESKTOP
+    ══════════════════════════════════ */
+    .table-wrap { overflow-x: auto; }
+
+    table.desktop-table {
+      width: 100%; border-collapse: collapse;
+      font-family: var(--font-b); font-size: 15px;
+    }
+    table.desktop-table thead tr {
+      background: #0a1520;
+      border-bottom: 2px solid var(--cyan);
+    }
+    table.desktop-table thead th {
+      padding: 13px 16px; text-align: left;
+      font-family: var(--font-m); font-size: 10px;
+      letter-spacing: 2px; color: var(--cyan);
+      text-transform: uppercase; white-space: nowrap;
+    }
+    table.desktop-table thead th.r { text-align: right; }
+    table.desktop-table thead th.c { text-align: center; }
+    table.desktop-table tbody tr {
+      border-bottom: 1px solid rgba(30,58,74,.5);
+      transition: background .2s;
+    }
+    table.desktop-table tbody tr:nth-child(even) { background: var(--bg-row-alt); }
+    table.desktop-table tbody tr:hover { background: rgba(0,212,255,.04); }
+    table.desktop-table tbody td {
+      padding: 12px 16px; vertical-align: middle;
+    }
+    table.desktop-table td.r { text-align: right; font-family: var(--font-m); font-size:14px; }
+    table.desktop-table td.c { text-align: center; }
+
+    /* ══════════════════════════════════
+       TARJETAS — MOBILE
+    ══════════════════════════════════ */
+    .mobile-cards { display: none; }
+
+    .gasto-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .gasto-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%;
+    }
+    .gasto-card.mantiene::before { background: var(--cyan); }
+    .gasto-card.reduce::before   { background: var(--gold); }
+    .gasto-card.elimina::before  { background: var(--red);  }
+
+    .card-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 12px;
+    }
+    .card-nombre { font-weight: 700; font-size: 15px; color: var(--text); }
+    .card-desc   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .card-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-top: 10px;
+    }
+    .card-field { }
+    .card-field-label {
+      font-family: var(--font-m); font-size: 9px;
+      letter-spacing: 2px; color: var(--muted);
+      text-transform: uppercase; margin-bottom: 3px;
+    }
+    .card-field-value {
+      font-family: var(--font-m); font-size: 16px;
+    }
+    .card-field-value.actual { color: var(--text2); }
+    .card-field-value.nuevo-mantiene { color: var(--cyan);  text-shadow: var(--glow-c); }
+    .card-field-value.nuevo-reduce   { color: var(--gold); }
+    .card-field-value.nuevo-elimina  { color: var(--red);  text-shadow: var(--glow-r); }
+
+    /* ── BADGE ── */
+    .badge {
+      display: inline-block; padding: 2px 10px;
+      border-radius: 2px; font-family: var(--font-m);
+      font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    }
+    .badge-mantiene { background:rgba(0,212,255,.12); color:var(--cyan);  border:1px solid rgba(0,212,255,.25); }
+    .badge-reduce   { background:rgba(240,180,41,.12); color:var(--gold); border:1px solid rgba(240,180,41,.25); }
+    .badge-elimina  { background:rgba(255,58,92,.12);  color:var(--red);  border:1px solid rgba(255,58,92,.25); }
+
+    /* ── NOMBRE/DESC en tabla desktop ── */
+    .g-nombre { font-weight: 600; font-size: 15px; }
+    .g-desc   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .v-nuevo.mantiene { color: var(--cyan); }
+    .v-nuevo.reduce   { color: var(--gold); }
+    .v-nuevo.elimina  { color: var(--red);  }
+
+    /* ── TOTALS ── */
+    .totals-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px; margin-top: 24px;
+    }
+    @media(min-width:600px){
+      .totals-bar { grid-template-columns: repeat(3,1fr); }
+    }
+    .total-box {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 4px; padding: 15px 18px; text-align: center;
+    }
+    .tb-label {
+      font-family: var(--font-m); font-size: 9px;
+      letter-spacing: 2px; color: var(--muted);
+      text-transform: uppercase; margin-bottom: 7px;
+    }
+    .tb-value { font-family: var(--font-m); font-size: 20px; }
+    .total-box.actual { border-top: 2px solid var(--red); }
+    .total-box.nuevo  { border-top: 2px solid var(--cyan); }
+    .total-box.ahorro { border-top: 2px solid var(--green); background:rgba(0,255,136,.03); }
+    .total-box.actual .tb-value { color: var(--red);   text-shadow: var(--glow-r); }
+    .total-box.nuevo  .tb-value { color: var(--cyan);  text-shadow: var(--glow-c); }
+    .total-box.ahorro .tb-value { color: var(--green); text-shadow: var(--glow-g); }
+    /* span full width on mobile when 3rd item */
+    @media(max-width:599px){
+      .total-box.ahorro { grid-column: 1 / -1; }
+    }
+
+    .anual-box {
+      margin-top: 14px; padding: 14px 20px;
+      background: rgba(0,255,136,.05);
+      border: 1px solid rgba(0,255,136,.2);
+      border-radius: 4px;
+      display: flex; flex-wrap: wrap;
+      align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .anual-label {
+      font-family: var(--font-m); font-size: 10px;
+      letter-spacing: 2px; color: var(--green); text-transform: uppercase;
+    }
+    .anual-value {
+      font-family: var(--font-d); font-size: clamp(18px,4vw,24px);
+      font-weight: 900; color: var(--green); text-shadow: var(--glow-g);
+    }
+
+    /* ── CHARTS ── */
+    .chart-grid {
+      display: grid; gap: 20px;
+      grid-template-columns: 1fr;
+    }
+    @media(min-width:700px){
+      .chart-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .chart-box {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 4px; padding: 20px;
+    }
+    .chart-ttl {
+      font-family: var(--font-m); font-size: 9px;
+      letter-spacing: 2px; color: var(--muted);
+      text-transform: uppercase; margin-bottom: 16px;
+    }
+
+    /* Bar chart */
+    .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+    .bar-lbl {
+      font-family: var(--font-m); font-size: 9px;
+      color: var(--text2); width: 80px; text-align: right;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      flex-shrink: 0;
+    }
+    .bar-track {
+      flex: 1; height: 7px;
+      background: rgba(255,255,255,.05); border-radius: 2px; overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%; border-radius: 2px; width: 0;
+      transition: width 1s cubic-bezier(.22,1,.36,1);
+    }
+    .bar-amt {
+      font-family: var(--font-m); font-size: 9px;
+      color: var(--muted); width: 62px; flex-shrink: 0;
+    }
+
+    /* Donut */
+    .donut-wrap { display:flex; flex-direction:column; align-items:center; }
+    .donut-legend {
+      display:flex; flex-wrap:wrap; gap:6px 14px;
+      margin-top:12px; justify-content:center;
+    }
+    .leg-item {
+      display:flex; align-items:center; gap:5px;
+      font-family:var(--font-m); font-size:9px; color:var(--text2);
+    }
+    .leg-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align:center; padding-top:36px;
+      font-family:var(--font-m); font-size:9px;
+      letter-spacing:3px; color:var(--muted); text-transform:uppercase;
+    }
+    footer span { color:var(--cyan); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .anim { animation: fadeUp .7s ease both; }
+    .anim:nth-child(1){ animation-delay:.05s }
+    .anim:nth-child(2){ animation-delay:.15s }
+    .anim:nth-child(3){ animation-delay:.25s }
+    .anim:nth-child(4){ animation-delay:.35s }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width:5px; height:5px; }
+    ::-webkit-scrollbar-track { background:var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+    ::-webkit-scrollbar-thumb:hover { background:var(--cyan); }
+
+    /* ══ RESPONSIVE BREAKPOINT ══
+       < 640px → mostrar tarjetas, ocultar tabla
+       ≥ 640px → mostrar tabla, ocultar tarjetas
+    */
+    @media(max-width:639px){
+      .desktop-table { display:none; }
+      .mobile-cards  { display:block; }
+    }
+    @media(min-width:640px){
+      .desktop-table { display:table; }
+      .mobile-cards  { display:none; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header class="anim">
+    <div class="h-tag">// Sistema de Finanzas Personales</div>
+    <h1>Plan de Gastos</h1>
+    <div class="h-sub">Seguimiento de entradas y salidas · Período mensual</div>
+    <!-- ▶ Cambia tu nombre aquí -->
+    <div class="owner-name">TU NOMBRE AQUÍ</div>
+    <div class="h-line"></div>
+  </header>
+
+  <!-- 01 INGRESOS -->
+  <div class="anim">
+    <div class="sec-title">// 01 · Ingresos del Mes</div>
+    <div class="panel">
+      <div class="income-grid">
+        <!-- ▶ Modifica los valores de cada fuente de ingreso -->
+        <div class="income-card">
+          <div class="ic-label">Salario Principal</div>
+          <div class="ic-value">$2.500.000</div>
+          <div class="ic-sub">Ingreso fijo mensual</div>
+        </div>
+        <div class="income-card">
+          <div class="ic-label">Ingresos Extra</div>
+          <div class="ic-value">$300.000</div>
+          <div class="ic-sub">Freelance / comisiones</div>
+        </div>
+        <div class="income-card">
+          <div class="ic-label">Otros Ingresos</div>
+          <div class="ic-value">$0</div>
+          <div class="ic-sub">Arriendos / inversiones</div>
+        </div>
+        <div class="income-card ic-total">
+          <div class="ic-label">▶ Total Ingresos</div>
+          <div class="ic-value" id="ing-total">$2.800.000</div>
+          <div class="ic-sub">Suma de todas las fuentes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 GASTOS -->
+  <div class="anim">
+    <div class="sec-title">// 02 · Plan de Gastos Mensuales</div>
+    <div class="panel">
+
+      <!--
+        ▶ CÓMO EDITAR CADA GASTO:
+          data-actual = valor actual del gasto (número sin puntos)
+          data-nuevo  = nuevo valor planeado   (número sin puntos)
+          data-accion = "mantiene" | "reduce" | "elimina"
+          data-nombre = nombre de la categoría
+          data-desc   = descripción breve
+        Los totales y gráficas se calculan automáticamente.
+      -->
+
+      <!-- ════ TABLA DESKTOP (≥ 640px) ════ -->
+      <div class="table-wrap">
+        <table class="desktop-table" id="gastos-table">
+          <thead>
+            <tr>
+              <th>Categoría</th>
+              <th class="r">Valor Actual ($)</th>
+              <th class="c">Acción</th>
+              <th class="r">Nuevo Valor ($)</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-body"></tbody>
+        </table>
+      </div>
+
+      <!-- ════ TARJETAS MOBILE (< 640px) ════ -->
+      <div class="mobile-cards" id="mobile-cards"></div>
+
+      <!-- Totales -->
+      <div class="totals-bar">
+        <div class="total-box actual">
+          <div class="tb-label">Gasto Actual</div>
+          <div class="tb-value" id="total-actual">—</div>
+        </div>
+        <div class="total-box nuevo">
+          <div class="tb-label">Nuevo Gasto</div>
+          <div class="tb-value" id="total-nuevo">—</div>
+        </div>
+        <div class="total-box ahorro">
+          <div class="tb-label">Ahorro / mes</div>
+          <div class="tb-value" id="total-ahorro">—</div>
+        </div>
+      </div>
+      <div class="anual-box">
+        <div class="anual-label">▶▶ Proyección · Ahorro al año (× 12 meses)</div>
+        <div class="anual-value" id="ahorro-anual">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 GRÁFICAS -->
+  <div class="anim">
+    <div class="sec-title">// 03 · Análisis Visual</div>
+    <div class="panel">
+      <div class="chart-grid">
+        <div class="chart-box">
+          <div class="chart-ttl">Distribución del nuevo gasto</div>
+          <div id="bar-chart"></div>
+        </div>
+        <div class="chart-box donut-wrap">
+          <div class="chart-ttl">Composición financiera del mes</div>
+          <svg id="donut-svg" width="160" height="160" viewBox="0 0 160 160" style="overflow:visible"></svg>
+          <div class="donut-legend" id="donut-legend"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Plan de Gastos Personal</span> · Actualiza los valores en el código · Todos los cálculos son automáticos
+  </footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════
+   DATOS DE GASTOS
+   ▶ Modifica estos objetos para cambiar
+     los valores del plan de gastos.
+   ═══════════════════════════════════════ */
+const GASTOS = [
+  { nombre:'Vivienda',          desc:'Arriendo, arreglos, pintura',      actual:100000, nuevo:70000,  accion:'reduce'   },
+  { nombre:'Mercado',           desc:'Alimentos, bebidas, aseo',          actual:400000, nuevo:400000, accion:'mantiene' },
+  { nombre:'Servicios Públicos',desc:'Agua, luz, teléfono, internet',     actual:150000, nuevo:150000, accion:'mantiene' },
+  { nombre:'Salud',             desc:'Medicina, gastos médicos',          actual:100000, nuevo:80000,  accion:'reduce'   },
+  { nombre:'Transporte',        desc:'Bus, taxi, gasolina, seguros',      actual:60000,  nuevo:60000,  accion:'mantiene' },
+  { nombre:'Educación',         desc:'Colegio, útiles, uniformes',        actual:20000,  nuevo:20000,  accion:'mantiene' },
+  { nombre:'Niños',             desc:'Ropa, juguetes, medicina',          actual:0,      nuevo:0,      accion:'mantiene' },
+  { nombre:'Celular',           desc:'Minutos, datos, equipo',            actual:30000,  nuevo:20000,  accion:'reduce'   },
+  { nombre:'Ropa',              desc:'Vestido, zapatos, accesorios',      actual:40000,  nuevo:0,      accion:'elimina'  },
+  { nombre:'Recreación',        desc:'Vacaciones, restaurante, otros',    actual:60000,  nuevo:30000,  accion:'reduce'   },
+  { nombre:'Impuestos',         desc:'Predial, renta, etc.',              actual:30000,  nuevo:30000,  accion:'mantiene' },
+  { nombre:'Créditos',          desc:'Tarjetas de crédito, deudas',       actual:90000,  nuevo:70000,  accion:'reduce'   },
+];
+
+/* ═══════════════════════════════════════
+   PALETA DE COLORES PARA GRÁFICAS
+   ═══════════════════════════════════════ */
+const COLORS = [
+  '#00d4ff','#00ff88','#f0b429','#9b59f5','#ff3a5c',
+  '#00b3d4','#00cc6e','#d4920a','#7a3dd4','#d42044',
+  '#4dd9f5','#66ffb3',
+];
+
+const fmt = v => '$' + Math.round(v).toLocaleString('es-CO').replace(/,/g,'.');
+
+const BADGE_CLS = { mantiene:'badge-mantiene', reduce:'badge-reduce', elimina:'badge-elimina' };
+const BADGE_LBL = { mantiene:'Mantiene',        reduce:'Reduce',       elimina:'Elimina'       };
+const VNUEVO_CLS= { mantiene:'mantiene',         reduce:'reduce',       elimina:'elimina'       };
+
+let totalActual = 0, totalNuevo = 0;
+const chartData = [];
+
+/* ── Render tabla desktop ── */
+const tbody = document.getElementById('tabla-body');
+GASTOS.forEach((g, i) => {
+  totalActual += g.actual;
+  totalNuevo  += g.nuevo;
+  if (g.nuevo > 0) chartData.push({ nombre: g.nombre, valor: g.nuevo, color: COLORS[i % COLORS.length] });
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>
+      <div class="g-nombre">${g.nombre}</div>
+      <div class="g-desc">${g.desc}</div>
+    </td>
+    <td class="r" style="color:var(--text2);font-size:14px">${fmt(g.actual)}</td>
+    <td class="c"><span class="badge ${BADGE_CLS[g.accion]}">${BADGE_LBL[g.accion]}</span></td>
+    <td class="r"><span class="v-nuevo ${VNUEVO_CLS[g.accion]}">${fmt(g.nuevo)}</span></td>`;
+  tbody.appendChild(tr);
+});
+
+/* ── Render tarjetas mobile ── */
+const mobileContainer = document.getElementById('mobile-cards');
+GASTOS.forEach((g, i) => {
+  const card = document.createElement('div');
+  card.className = `gasto-card ${g.accion}`;
+  card.innerHTML = `
+    <div class="card-header">
+      <div>
+        <div class="card-nombre">${g.nombre}</div>
+        <div class="card-desc">${g.desc}</div>
+      </div>
+      <span class="badge ${BADGE_CLS[g.accion]}">${BADGE_LBL[g.accion]}</span>
+    </div>
+    <div class="card-row">
+      <div class="card-field">
+        <div class="card-field-label">Valor Actual</div>
+        <div class="card-field-value actual">${fmt(g.actual)}</div>
+      </div>
+      <div class="card-field">
+        <div class="card-field-label">Nuevo Valor</div>
+        <div class="card-field-value nuevo-${g.accion}">${fmt(g.nuevo)}</div>
+      </div>
+    </div>`;
+  mobileContainer.appendChild(card);
+});
+
+/* ── Totales ── */
+const ahorroMes  = totalActual - totalNuevo;
+const ahorroAnio = ahorroMes * 12;
+document.getElementById('total-actual').textContent = fmt(totalActual);
+document.getElementById('total-nuevo').textContent  = fmt(totalNuevo);
+document.getElementById('total-ahorro').textContent = fmt(ahorroMes);
+document.getElementById('ahorro-anual').textContent = fmt(ahorroAnio);
+
+/* ── Bar chart ── */
+const maxVal = Math.max(...chartData.map(g => g.valor), 1);
+const barChart = document.getElementById('bar-chart');
+chartData.forEach(g => {
+  const pct = (g.valor / maxVal * 100).toFixed(1);
+  const row = document.createElement('div');
+  row.className = 'bar-row';
+  row.innerHTML = `
+    <div class="bar-lbl" title="${g.nombre}">${g.nombre}</div>
+    <div class="bar-track">
+      <div class="bar-fill" data-pct="${pct}"
+           style="background:${g.color};box-shadow:0 0 5px ${g.color}55"></div>
+    </div>
+    <div class="bar-amt">${fmt(g.valor)}</div>`;
+  barChart.appendChild(row);
+});
+requestAnimationFrame(() => setTimeout(() => {
+  document.querySelectorAll('.bar-fill').forEach(el => el.style.width = el.dataset.pct + '%');
+}, 300));
+
+/* ── Donut chart ── */
+(function(){
+  const svg = document.getElementById('donut-svg');
+  const leg = document.getElementById('donut-legend');
+  const total = chartData.reduce((s,g) => s + g.valor, 0);
+  const cx=80, cy=80, r=64, stroke=20;
+  let start = -Math.PI/2;
+
+  chartData.forEach(g => {
+    const angle = (g.valor/total)*2*Math.PI;
+    const end   = start + angle;
+    const x1 = cx + r*Math.cos(start), y1 = cy + r*Math.sin(start);
+    const x2 = cx + r*Math.cos(end),   y2 = cy + r*Math.sin(end);
+    const large = angle > Math.PI ? 1 : 0;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',`M${cx} ${cy} L${x1} ${y1} A${r} ${r} 0 ${large} 1 ${x2} ${y2}Z`);
+    path.setAttribute('fill', g.color);
+    path.setAttribute('opacity','0.85');
+    path.style.filter = `drop-shadow(0 0 3px ${g.color}88)`;
+    svg.appendChild(path);
+    start = end;
+    leg.innerHTML += `<div class="leg-item"><div class="leg-dot" style="background:${g.color}"></div>${g.nombre}</div>`;
+  });
+
+  /* Mask central */
+  const mask = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  mask.setAttribute('cx',cx); mask.setAttribute('cy',cy);
+  mask.setAttribute('r', r - stroke); mask.setAttribute('fill','#111820');
+  svg.appendChild(mask);
+
+  /* Center text */
+  const t1 = document.createElementNS('http://www.w3.org/2000/svg','text');
+  t1.setAttribute('x',cx); t1.setAttribute('y',cy-6);
+  t1.setAttribute('text-anchor','middle'); t1.setAttribute('fill','#00d4ff');
+  t1.setAttribute('font-family','Orbitron,monospace');
+  t1.setAttribute('font-size','10'); t1.setAttribute('font-weight','700');
+  t1.textContent = fmt(total); svg.appendChild(t1);
+
+  const t2 = document.createElementNS('http://www.w3.org/2000/svg','text');
+  t2.setAttribute('x',cx); t2.setAttribute('y',cy+9);
+  t2.setAttribute('text-anchor','middle'); t2.setAttribute('fill','#3d6070');
+  t2.setAttribute('font-family','Share Tech Mono,monospace'); t2.setAttribute('font-size','8');
+  t2.textContent = 'GASTO TOTAL'; svg.appendChild(t2);
+})();
+</script>
+</body>
+</html>
